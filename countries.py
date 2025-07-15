@@ -6,6 +6,7 @@ import psycopg2
 # Main execution
 def main():
     countries = fetch_country_data()
+    # print(json.dumps(countries, indent=2))  # indent=2 for pretty printing
     if not countries:
         raise ValueError("No country data returned from API. Cannot proceed.")
 
@@ -51,9 +52,7 @@ def fetch_country_data():
     for country1, country2 in zip(response1, response2): # zip combines two lists into pairs by index(position)
     # Merge dictionaries for each country
         merged_country = {**country1, **country2} # Merging two dictionaries using unpacking operator(**)
-        merged_data.append(merged_country) # Append the merged country data to the list
-
-    # print(json.dumps(merged_data, indent=2))  # indent=2 for pretty printing
+        merged_data.append(merged_country) # Append the merged country data to the list.
 
     return merged_data
 
