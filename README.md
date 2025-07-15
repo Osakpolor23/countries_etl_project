@@ -105,6 +105,7 @@ This ensures the script is idempotent and safely re-runnable without issues of d
 Included are various insights-driven .sql files to query the ingested data.
 
 **Examples:**
+
 count_of_countries_with_more_than_one_official_languages.sql
 
 least_two_populous_countries_from_each_continent.sql
