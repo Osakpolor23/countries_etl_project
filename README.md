@@ -4,7 +4,7 @@ This project builds a complete **ETL (Extract, Transform, Load)** pipeline using
 
 
 ## ETL Architecture Workflow
-
+```text
 ┌──────────────────────────────┐
 │       Extraction (E)         │
 │ ──────────────────────────── │
@@ -31,7 +31,7 @@ This project builds a complete **ETL (Extract, Transform, Load)** pipeline using
 │ • Insert with conflict logic │
 └──────────────────────────────┘
 
-
+```text
 
 ## ETL Process Breakdown
 ### 1. Extraction
