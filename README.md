@@ -5,17 +5,32 @@ This project builds a complete **ETL (Extract, Transform, Load)** pipeline using
 
 ## ETL Architecture Workflow
 
-+----------------------+       +-----------------------+       +------------------------+
-|   REST Countries API |  -->  | Python ETL Script     |  -->  | PostgreSQL (pgAdmin)   |
-|   (JSON Responses)   |       | (Requests + psycopg2) |       |   Table: countries     |
-+----------------------+       +-----------------------+       +------------------------+
-
-    Extraction (E)                Transformation (T)                  Loading (L)    
-────────────────────            ────────────────────                ─────────────────
-• REST Countries API            • Merge chunked responses     • Connect using psycopg2 
-• Two-part data requests        • Extract nested fields       • Create table with UNIQUE
-• JSON responses retrieved      • Format values (strings)     • Insert with conflict check
-                                • Structure into row tuples
+```text
+┌──────────────────────────────┐
+│       Extraction (E)         │
+│ ──────────────────────────── │
+│ • Call REST Countries API    │
+│ • Break request into chunks  │
+│ • Receive JSON responses     │
+└──────────────────────────────┘
+            ↓
+┌──────────────────────────────┐
+│     Transformation (T)       │
+│ ──────────────────────────── │
+│ • Merge multi-part JSON      │
+│ • Extract nested fields      │
+│ • Clean string formats       │
+│ • Generate row tuples        │
+└──────────────────────────────┘
+            ↓
+┌──────────────────────────────┐
+│         Loading (L)          │
+│ ──────────────────────────── │
+│ • Connect to PostgreSQL      │
+│ • Create table if not exists │
+│ • Enforce UNIQUE constraint  │
+│ • Insert with conflict logic │
+└──────────────────────────────┘
 
 
 ## ETL Process Breakdown
