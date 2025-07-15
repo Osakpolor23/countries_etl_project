@@ -5,7 +5,7 @@ This project builds a complete **ETL (Extract, Transform, Load)** pipeline using
 
 ## ETL Architecture Workflow
 
-```text
+```
 +----------------------+       +-----------------------+       +------------------------+
 |   REST Countries API |  -->  | Python ETL Script     |  -->  | PostgreSQL (pgAdmin)   |
 |   (JSON Responses)   |       | (Requests + psycopg2) |       |   Table: countries     |
@@ -17,44 +17,52 @@ This project builds a complete **ETL (Extract, Transform, Load)** pipeline using
 • Two-part data requests        • Extract nested fields       • Create table with UNIQUE
 • JSON responses retrieved      • Format values (strings)     • Insert with conflict check
                                 • Structure into row tuples
+```
 
 
 ## ETL Process Breakdown
 ### 1. Extraction
-API endpoint: https://restcountries.com/v3.1/all
+API endpoint: https://restcountries.com/v3.1/all.
+
 To avoid query limits, fields are split across two chunks:
+
     Basic info (name, region, languages, etc.)
     Area-related info (population, area, continents)  
 Both responses are merged using zip() and dictionary unpacking.
 
 ### 2. Transformation
 Each country record is flattened into a tuple using the transform_country() custom function:
+
     (
-  country_name,
-  official_name,
-  native_names,
-  currency_codes,
-  currency_names,
-  currency_symbols,
-  idd_codes,
-  capitals,
-  region,
-  subregion,
-  languages,
-  area,
-  population,
-  continents,
-  independent,
-  un_member,
-  start_of_week
-    )
+    country_name,
+    official_name,
+    native_names,
+    currency_codes,
+    currency_names,
+    currency_symbols,
+    idd_codes,
+    capitals,
+    region,
+    subregion,
+    languages,
+    area,
+    population,
+    continents,
+    independent,
+    un_member,
+    start_of_week
+        )
 Nested dictionaries and lists are joined using commas.
+
 Defaults like "Unknown" or 0 are used where data is missing.
 
 ### 3. Loading
 Connection handled via ***psycopg2***. Postgres database adapter for python.
+
 Table creation if not already present.
+
 Composite uniqueness constraint prevents duplicate ingestion.
+
 Bulk insertion is handled using executemany() and conflict checking.
 
 ### Database Schema
@@ -109,11 +117,9 @@ count_of_non_unmember_countries.sql
 
 Each file contains a clean SELECT query ready for use in pgAdmin or programmatic execution.
 
-### 🤝 Community & Collaboration
+### Community & Collaboration
 
-This project was built with open data, open code, and an open mind.
 
 Feel free to **clone**, **fork**, or contribute to this repository — whether you're fixing a bug, enhancing the pipeline, adding new insights, or just experimenting with global data. Pull requests and ideas are always welcome!
 
-Your improvements might shape how we understand the world — one country at a time.
 A bientot!
