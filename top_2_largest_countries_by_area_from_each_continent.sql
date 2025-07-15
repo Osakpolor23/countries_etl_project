@@ -13,4 +13,4 @@ from
 	from countries
 			)
 where area_rank <= 2
-order by continents
+order by continents;

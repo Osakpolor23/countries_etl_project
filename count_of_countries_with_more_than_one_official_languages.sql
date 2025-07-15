@@ -5,7 +5,7 @@ WHERE LENGTH(languages) - LENGTH(REPLACE(languages, ',', '')) >= 1;
 /*
 The comma-separated languages are replaced by an empty string, making the count of each character,
 one less than the length(i.e the count of each character including the spaces and commas).
-A difference of 1 and above means one or more commas separated them
+A difference of 1 and above means one or more commas separated them initially.
 */
 
 
