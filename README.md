@@ -4,34 +4,20 @@ This project builds a complete **ETL (Extract, Transform, Load)** pipeline using
 
 
 ## ETL Architecture Workflow
-```text
-┌──────────────────────────────┐
-│       Extraction (E)         │
-│ ──────────────────────────── │
-│ • Call REST Countries API    │
-│ • Break request into chunks  │
-│ • Receive JSON responses     │
-└──────────────────────────────┘
-            ↓
-┌──────────────────────────────┐
-│     Transformation (T)       │
-│ ──────────────────────────── │
-│ • Merge multi-part JSON      │
-│ • Extract nested fields      │
-│ • Clean string formats       │
-│ • Generate row tuples        │
-└──────────────────────────────┘
-            ↓
-┌──────────────────────────────┐
-│         Loading (L)          │
-│ ──────────────────────────── │
-│ • Connect to PostgreSQL      │
-│ • Create table if not exists │
-│ • Enforce UNIQUE constraint  │
-│ • Insert with conflict logic │
-└──────────────────────────────┘
 
 ```text
++----------------------+       +-----------------------+       +------------------------+
+|   REST Countries API |  -->  | Python ETL Script     |  -->  | PostgreSQL (pgAdmin)   |
+|   (JSON Responses)   |       | (Requests + psycopg2) |       |   Table: countries     |
++----------------------+       +-----------------------+       +------------------------+
+
+    Extraction (E)                Transformation (T)                  Loading (L)    
+────────────────────            ────────────────────                ─────────────────
+• REST Countries API            • Merge chunked responses     • Connect using psycopg2 
+• Two-part data requests        • Extract nested fields       • Create table with UNIQUE
+• JSON responses retrieved      • Format values (strings)     • Insert with conflict check
+                                • Structure into row tuples
+
 
 ## ETL Process Breakdown
 ### 1. Extraction
@@ -123,8 +109,11 @@ count_of_non_unmember_countries.sql
 
 Each file contains a clean SELECT query ready for use in pgAdmin or programmatic execution.
 
-### Community & Collaboration
+### 🤝 Community & Collaboration
+
+This project was built with open data, open code, and an open mind.
 
 Feel free to **clone**, **fork**, or contribute to this repository — whether you're fixing a bug, enhancing the pipeline, adding new insights, or just experimenting with global data. Pull requests and ideas are always welcome!
 
+Your improvements might shape how we understand the world — one country at a time.
 A bientot!
