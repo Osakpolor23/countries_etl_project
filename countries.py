@@ -5,23 +5,34 @@ import psycopg2
 
 # Main execution
 def main():
+    # fecth the API data
     countries = fetch_country_data()
     # print(json.dumps(countries, indent=2))  # indent=2 for pretty printing
+    # if no data is returned(or an empty list is returned)
     if not countries:
+        # raise ValueError with an error message
         raise ValueError("No country data returned from API. Cannot proceed.")
 
-
+    # connect to the postgresdb
     conn = connect_db()
+    # if connection failed
     if not conn:
+        # raise ConnectionError with an error message
         raise ConnectionError("Failed to connect to PostgreSQL. Check your credentials or server status.")
 
+    # initialize cursor for sql instructions
     cursor = conn.cursor()
+    # create table in the database if not exists
     create_table(cursor)
+    # bulk insert values into the created table
     insert_countries(cursor, countries)
-    
+    # commit insertion
     conn.commit()
+    # close cursor
     cursor.close()
+    # close connection to the gostgresdb
     conn.close()
+    # print successful message if everything completed
     print("All done!")
 
 # Extract the world country data from this API https://restcountries.com/v3.1/all
@@ -150,7 +161,7 @@ def insert_countries(cursor, countries):
     print(f"Inserted {len(records)} countries")
 
 
-# Run the program
+# Run the program only when executed on the cli
 if __name__ == "__main__":
     main()
 
