@@ -32,6 +32,7 @@ This project builds a complete **ETL (Extract, Transform, Load)** pipeline using
 │ • Insert with conflict logic │
 └──────────────────────────────┘
 
+```text
 
 ## ETL Process Breakdown
 ### 1. Extraction
