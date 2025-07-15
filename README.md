@@ -5,7 +5,6 @@ This project builds a complete **ETL (Extract, Transform, Load)** pipeline using
 
 ## ETL Architecture Workflow
 
-```text
 ┌──────────────────────────────┐
 │       Extraction (E)         │
 │ ──────────────────────────── │
@@ -32,7 +31,7 @@ This project builds a complete **ETL (Extract, Transform, Load)** pipeline using
 │ • Insert with conflict logic │
 └──────────────────────────────┘
 
-```text
+
 
 ## ETL Process Breakdown
 ### 1. Extraction
@@ -124,11 +123,8 @@ count_of_non_unmember_countries.sql
 
 Each file contains a clean SELECT query ready for use in pgAdmin or programmatic execution.
 
-### 🤝 Community & Collaboration
-
-This project was built with open data, open code, and an open mind.
+### Community & Collaboration
 
 Feel free to **clone**, **fork**, or contribute to this repository — whether you're fixing a bug, enhancing the pipeline, adding new insights, or just experimenting with global data. Pull requests and ideas are always welcome!
 
-Your improvements might shape how we understand the world — one country at a time.
 A bientot!
