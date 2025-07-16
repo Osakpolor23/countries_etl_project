@@ -15,7 +15,7 @@ def main():
 
     # connect to the postgresdb
     conn = connect_db()
-    # if connection failed
+    # if connection failed(or None is returned)
     if not conn:
         # raise ConnectionError with an error message
         raise ConnectionError("Failed to connect to PostgreSQL. Check your credentials or server status.")
