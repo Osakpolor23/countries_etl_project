@@ -69,12 +69,14 @@ def fetch_country_data():
 
 # Transform one country record into tuple matching table schema
 def transform_country(country):
-    # get the dictionaries within the country dictionary
-    name = country.get('name', {})
+    # get the dictionaries within the fully returned dictionary
+    name = country.get('name', {}) # get the value for name, and if missing return an empty dict({}) -- fallback value
     currencies = country.get('currencies', {})
     idd = country.get('idd', {})
 
-    # extract and return the needed columns in the preferred format
+    # country is a default parameter name for each country record that will be passed through the function for transformation
+
+    # extract and return the needed columns as a tuple
     return (
         name.get('common'), # extracting common name
         name.get('official'), # extracting official name
@@ -102,18 +104,19 @@ def connect_db():
         conn = psycopg2.connect(
             dbname='countries_db',
             user='postgres',
-            password='my_pgadmin_password',
+            password='Endowed123#',
             host='localhost',
             port='5432'
         )
         print("Connected to database.")
         return conn
     except Exception as e:
-        print("Database connection failed:", e)
+        print("Database connection failed:", e) # if connection failed, returned the texts and the exception thrown.
         return None
 
 # Create table if not exists
 def create_table(cursor):
+    # create table using the .execute() method
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS public.countries (
         id SERIAL PRIMARY KEY,
@@ -146,8 +149,10 @@ def create_table(cursor):
     print("Table 'countries' created in the postgresdb with uniqueness constraint.")
 
 # Bulk insert records
-def insert_countries(cursor, countries):
-    records = [transform_country(c) for c in countries]
+def insert_countries(cursor, countries): 
+    # transform each country dictionary, and insert into a list, ready for bulk inserts  
+    records = [transform_country(c) for c in countries] # c is individual country record from the whole dataset(countries)
+    # run bulk insert using .executemany() method
     cursor.executemany("""
         INSERT INTO public.countries (
             country_name, official_name, native_names,
@@ -157,7 +162,7 @@ def insert_countries(cursor, countries):
             independent, un_member, start_of_week
         )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    ON CONFLICT ON CONSTRAINT unique_country_profile DO NOTHING;""", records)
+    ON CONFLICT ON CONSTRAINT unique_country_profile DO NOTHING;""", records)  # as
     print(f"Inserted {len(records)} countries")
 
 
