@@ -104,7 +104,7 @@ def connect_db():
         conn = psycopg2.connect(
             dbname='countries_db',
             user='postgres',
-            password='Endowed123#',
+            password='my_postgres_password',
             host='localhost',
             port='5432'
         )
