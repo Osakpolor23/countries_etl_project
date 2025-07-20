@@ -1,3 +1,11 @@
+-- count of French-speaking countries
+select count(*) from countries
+where upper(languages) like '%FRENCH%';
+
+-- count of English-speaking countries
+select count(*) from countries
+where upper(languages) like '%ENGLISH%';
+
 -- count of countries with more than one official language
 SELECT count(*)
 FROM public.countries

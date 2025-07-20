@@ -54,8 +54,6 @@ def fetch_country_data():
         response2 = requests.get(url2).json()
     except Exception as e:
         print("Failed to fetch data:", e)
-        return []
-    
     # Initialize an empty list to hold the merged data
     merged_data = []
 
@@ -63,9 +61,10 @@ def fetch_country_data():
     for country1, country2 in zip(response1, response2): # zip combines two lists into pairs by index(position)
     # Merge dictionaries for each country
         merged_country = {**country1, **country2} # Merging two dictionaries using unpacking operator(**)
-        merged_data.append(merged_country) # Append the merged country data to the list.
+        merged_data.append(merged_country) 
 
     return merged_data
+
 
 # Transform one country record into tuple matching table schema
 def transform_country(country):
@@ -76,7 +75,7 @@ def transform_country(country):
 
     # country is a default parameter name for each country record that will be passed through the function for transformation
 
-    # extract and return the needed columns as a tuple
+    # extract and return the needed columns as a tuple 
     return (
         name.get('common'), # extracting common name
         name.get('official'), # extracting official name
@@ -96,6 +95,7 @@ def transform_country(country):
         country.get('unMember'), # UN membership
         country.get('startOfWeek') # start of week day
     )
+
 
 
 # Connect to PostgreSQL
@@ -162,7 +162,7 @@ def insert_countries(cursor, countries):
             independent, un_member, start_of_week
         )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    ON CONFLICT ON CONSTRAINT unique_country_profile DO NOTHING;""", records)  # as
+    ON CONFLICT ON CONSTRAINT unique_country_profile DO NOTHING;""", records) 
     print(f"Inserted {len(records)} countries")
 
 
