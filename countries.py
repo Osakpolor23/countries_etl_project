@@ -12,7 +12,8 @@ def fetch_country_data(url1,url2):
     """Fetches and merges country metadata from two REST Countries API endpoints.
 
     It takes in two arguments which are the urls of the API whose data you want to fetch
-    and returns the list of the fetched API data.
+    and returns the list of the fetched API data. It also persist the data from the API locally
+    in a JSON file to avoid calling the API every single time.
 
     Parameters
     ---------------
@@ -33,6 +34,7 @@ def fetch_country_data(url1,url2):
         This function uses two separate API calls to overcome field length restrictions,
         and merges them by matching records index-wise using the zip() function.
         If either API call fails, it returns an empty list to prevent ETL continuation.
+        It also saves the called data in a JSON file.
     """
 
     try:
@@ -76,6 +78,7 @@ def load_country_data_from_json(json_path='countries_raw.json'):
         Useful for offline development and faster pipeline execution when the data is already available locally.
     """
     try:
+        # check if json file exists in path
         if os.path.exists(json_path):
             with open(json_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -203,7 +206,7 @@ def create_table(cursor, sql_file = './ddl_commands/create_countries.sql'):
     cursor.execute(sql)
     print(f"Executed SQL from {sql_file} and the table created with uniqueness constraint.")
 
-def insert_countries(cursor, countries):
+def insert_countries(cursor, countries, sql_file='./dml_commands/insert_countries.sql'):
     """A function that executes bulk inserts into the created table in the database.
 
     It executes the DML command `insert` on the created table by parsing the arguments
@@ -220,23 +223,19 @@ def insert_countries(cursor, countries):
         countries (list): A list of dictionaries containing raw country data fetched from the REST Countries API.
         Each dictionary is transformed into a tuple before insertion.
 
+        sql_file (str, optional): Path to the SQL file containing the bulk INSERT statement. 
+        Defaults to './dml_commands/insert_countries.sql' if no path is provided.
+
     Returns
     ---------------
         None
     """
 
     records = [transform_country(c) for c in countries]
-    cursor.executemany("""
-        INSERT INTO public.countries (
-            country_name, official_name, native_names,
-            currency_codes, currency_names, currency_symbols,
-            idd_codes, capitals, region, subregion, languages,
-            area, population, continents,
-            independent, un_member, start_of_week
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    ON CONFLICT ON CONSTRAINT unique_country_profile DO NOTHING;""", records) 
-    print(f"Inserted {len(records)} countries")
+    with open(sql_file, 'r') as f:
+        sql = f.read()
+    cursor.executemany(sql,records)
+    print(f"Inserted {len(records)} records")
 
 # Main execution
 def main():
