@@ -231,7 +231,7 @@ def insert_countries(cursor, countries, sql_file='./dml_commands/insert_countrie
         None
     """
 
-    records = [transform_country(c) for c in countries]
+    records = [transform_country(c) for c in countries] # transorm and convert to a list of tuples
     with open(sql_file, 'r') as f:
         sql = f.read()
     cursor.executemany(sql,records)
