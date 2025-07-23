@@ -2,53 +2,39 @@
 import requests
 import json
 import psycopg2
-
-# Main execution
-def main():
-    # fecth the API data
-    countries = fetch_country_data()
-    # print(json.dumps(countries, indent=2))  # indent=2 for pretty printing
-    # if no data is returned(or an empty list is returned)
-    if not countries:
-        # raise ValueError with an error message
-        raise ValueError("No country data returned from API. Cannot proceed.")
-
-    # connect to the postgresdb
-    conn = connect_db()
-    # if connection failed(or None is returned)
-    if not conn:
-        # raise ConnectionError with an error message
-        raise ConnectionError("Failed to connect to PostgreSQL. Check your credentials or server status.")
-
-    # initialize cursor for sql instructions
-    cursor = conn.cursor()
-    # create table in the database if not exists
-    create_table(cursor)
-    # bulk insert values into the created table
-    insert_countries(cursor, countries)
-    # commit insertion
-    conn.commit()
-    # close cursor
-    cursor.close()
-    # close connection to the gostgresdb
-    conn.close()
-    # print successful message if everything completed
-    print("All done!")
-
-# Extract the world country data from this API https://restcountries.com/v3.1/all
-"""I observed that the API requires the field names to be specified before it can be called,so I indicated 
-all the columns I needed while calling the API. I also ran into an issue of getting the error message:
-{"message": "'fields' query not specified", "status": 400}
-which could be as a result of the API having trouble parsing overly long fields parameters
-or hitting an internal limit (possibly on the query string length or field processing).
-So, I decided to breakdown my requests into two chunks as a walkaround
-"""
+import os
+from config import url1
+from config import url2
+from dotenv import load_dotenv
 
 # Fetch and merge country data from REST Countries API
-def fetch_country_data():
-    url1 = "https://restcountries.com/v3.1/all?fields=name,independent,unMember,startOfWeek,currencies,idd,capital,region,subregion,languages"
-    url2 = "https://restcountries.com/v3.1/all?fields=area,population,continents"
+def fetch_country_data(url1,url2):
+    """Fetches and merges country metadata from two REST Countries API endpoints.
+
+    It takes in two arguments which are the urls of the API whose data you want to fetch
+    and returns the list of the fetched API data.
+
+    Parameters
+    ---------------
+        url1 (str): The first API URL containing fields like name, currencies, languages, and geopolitics.
+        url2 (str): The second API URL containing fields such as area, population, and continents.
     
+    Requirements
+    ---------------
+        requests must be installed in the Python environment.
+
+    Returns
+    ---------------
+        list:
+            A list of merged country dictionaries. Each item in the list represents one country,
+            combining data from both responses into a unified structure.
+    Notes
+    ---------------
+        This function uses two separate API calls to overcome field length restrictions,
+        and merges them by matching records index-wise using the zip() function.
+        If either API call fails, it returns an empty list to prevent ETL continuation.
+    """
+
     try:
         response1 = requests.get(url1).json()
         response2 = requests.get(url2).json()
@@ -58,9 +44,9 @@ def fetch_country_data():
     merged_data = []
 
     # Merge the two responses by iterating through both lists
-    for country1, country2 in zip(response1, response2): # zip combines two lists into pairs by index(position)
+    for country1, country2 in zip(response1, response2): 
     # Merge dictionaries for each country
-        merged_country = {**country1, **country2} # Merging two dictionaries using unpacking operator(**)
+        merged_country = {**country1, **country2} 
         merged_data.append(merged_country) 
 
     return merged_data
@@ -68,55 +54,106 @@ def fetch_country_data():
 
 # Transform one country record into tuple matching table schema
 def transform_country(country):
-    # get the dictionaries within the fully returned dictionary
-    name = country.get('name', {}) # get the value for name, and if missing return an empty dict({}) -- fallback value
+    """A function that transforms a single country record from the REST Countries API into a flattened tuple
+    that matches the structure of the 'countries' SQL table.
+
+    It takes in the list of dictionaries of the API data as an argument, extracts the necessary columns,
+    while also carrying out the necessary transformations like replacing missing values with defaults
+    like `Unknown` and `0`.
+
+    parameter
+    ---------------
+        country (dict): A dictionary representing one country's metadata from the API.
+        this dictionary may contain nested keys for name, currencies, capital cities,
+        calling codes(idd), and other attributes.
+    
+    Returns
+    ---------------
+    tuple
+        A 17-element tuple containing formatted country information such as
+        names, currencies, calling codes(idd), capital cities, region, area, and population.
+        the output structure aligns with the order of columns defined in the PostgreSQL schema.
+    """
+
+    name = country.get('name', {}) 
     currencies = country.get('currencies', {})
     idd = country.get('idd', {})
 
-    # country is a default parameter name for each country record that will be passed through the function for transformation
-
-    # extract and return the needed columns as a tuple 
     return (
-        name.get('common'), # extracting common name
-        name.get('official'), # extracting official name
-        ', '.join([native.get('common', '') for native in name.get('nativeName', {}).values()]), # all common native name - comma separated
-        ', '.join(currencies.keys()), # all possible currency codes - comma separated
-        ', '.join([value.get('name', '') for value in currencies.values()]), # all possible currency names comma separated
-        ', '.join([value.get('symbol', '') for value in currencies.values()]), # all possible currency symbols - comma separated
-        ', '.join([idd.get('root', '') + suffix for suffix in idd.get('suffixes', [])]) if idd.get('suffixes') else '', # all possible calling codes/idd  - comma separated
-        ', '.join(country.get('capital', [])) if country.get('capital') else "Unknown", # all possible capital cities - comma separated
-        country.get('region'), # region
-        country.get('subregion'), # subregion
-        ', '.join(country.get('languages', {}).values()), # all possible official languages - comma separated
-        country.get('area', 0), # area with default 0 when missing
-        country.get('population', 0), # population with default zero when missing
-        ', '.join(country.get('continents', [])), # all possible continents - comma separated
-        country.get('independent'), # independence
-        country.get('unMember'), # UN membership
-        country.get('startOfWeek') # start of week day
+        name.get('common'), 
+        name.get('official'), 
+        ', '.join([native.get('common', '') for native in name.get('nativeName', {}).values()]), 
+        ', '.join(currencies.keys()), 
+        ', '.join([value.get('name', '') for value in currencies.values()]), 
+        ', '.join([value.get('symbol', '') for value in currencies.values()]), 
+        ', '.join([idd.get('root', '') + suffix for suffix in idd.get('suffixes', [])]) if idd.get('suffixes') else '', 
+        ', '.join(country.get('capital', [])) if country.get('capital') else "Unknown",
+        country.get('region'),
+        country.get('subregion'), 
+        ', '.join(country.get('languages', {}).values()), 
+        country.get('area', 0),
+        country.get('population', 0), 
+        ', '.join(country.get('continents', [])), 
+        country.get('independent'), 
+        country.get('unMember'), 
+        country.get('startOfWeek') 
     )
 
-
-
-# Connect to PostgreSQL
 def connect_db():
+    """Establishes a connection to the PostgreSQL database using credentials
+    stored in an environment file.
+
+    Environment Variables
+    ---------------
+        USER (str): PostgreSQL username.
+        PASSWORD (str): PostgreSQL password.
+    
+    Requirements
+    ---------------
+        psycopg2 must be installed in the Python environment.
+        A valid '.env' file (e.g. 'my_creds.env') containing the required variables must exist.
+
+    Returns
+    ---------------
+        conn(psycopg2.extensions.connection) or None
+            The active database connection object if successful;
+            otherwise, returns None if connection fails.)
+    """
+
+    # Load environment variables from file
+    load_dotenv(dotenv_path="my_creds.env")
     try:
         conn = psycopg2.connect(
             dbname='countries_db',
-            user='postgres',
-            password='my_postgres_password',
+            user=os.getenv("USER"),
+            password=os.getenv("PASSWORD"), 
             host='localhost',
             port='5432'
         )
         print("Connected to database.")
         return conn
     except Exception as e:
-        print("Database connection failed:", e) # if connection failed, returned the texts and the exception thrown.
+        print("Database connection failed:", e) 
         return None
 
-# Create table if not exists
 def create_table(cursor):
-    # create table using the .execute() method
+
+    """A function that executes the DDL command `create` on the database.
+
+    It performs DDL commands like create statement on the database by parsing the argument
+    `cursor` through it. It's purpose is to create the 'countries' table in the PostgreSQL 
+    database if it does not already exist.
+
+    parameter(s)
+    ---------------
+        cursor (psycopg2.extensions.cursor): A PostgreSQL database cursor used to execute SQL commands.
+        This cursor must be associated with an active database connection.
+    
+    Returns
+    ---------------
+        None
+    """
+
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS public.countries (
         id SERIAL PRIMARY KEY,
@@ -148,11 +185,31 @@ def create_table(cursor):
     """)
     print("Table 'countries' created in the postgresdb with uniqueness constraint.")
 
-# Bulk insert records
-def insert_countries(cursor, countries): 
-    # transform each country dictionary, and insert into a list, ready for bulk inserts  
-    records = [transform_country(c) for c in countries] # c is individual country record from the whole dataset(countries)
-    # run bulk insert using .executemany() method
+
+def insert_countries(cursor, countries):
+
+    """A function that executes bulk inserts into the created table in the database.
+
+    It executes the DML command `insert` on the created table by parsing the arguments
+    `cursor` and `countries` through it. It uses the transform(param) function to transform
+    each dictionary from the list of dictionaries returned from the api extraction to prepare
+    it for insertion by converting to a list of tuples, and then run a bulk insert of the
+    values into the created table in the datable.
+
+    Parameter
+    ---------------
+        cursor (psycopg2.extensions.cursor): A PostgreSQL database cursor used to execute SQL insert statements.
+        Must be connected to an active database session.
+        
+        countries (list): A list of dictionaries containing raw country data fetched from the REST Countries API.
+        Each dictionary is transformed into a tuple before insertion.
+
+    Returns
+    ---------------
+        None
+    """
+
+    records = [transform_country(c) for c in countries]
     cursor.executemany("""
         INSERT INTO public.countries (
             country_name, official_name, native_names,
@@ -165,6 +222,48 @@ def insert_countries(cursor, countries):
     ON CONFLICT ON CONSTRAINT unique_country_profile DO NOTHING;""", records) 
     print(f"Inserted {len(records)} countries")
 
+# Main execution
+def main():
+    """Orchestrates the full ETL pipeline for retrieving, transforming, and loading 
+    global country data into a PostgreSQL database.
+
+    Steps:
+        1. Extracts country metadata from the REST Countries API using fetch_country_data(url1,url2).
+        2. Validates that data was successfully retrieved.
+        3. Establishes a connection to a local PostgreSQL instance.
+        4. Creates the target 'countries' table if it does not already exist.
+        5. Transforms and inserts all country records into the database in bulk.
+        6. Commits the transaction and safely closes all resources.
+
+    Notes:
+        This function acts as the entry point and is invoked only when the script is executed directly.
+
+    Returns:
+        None
+    """
+
+    # fecth the API data
+    countries = fetch_country_data(url1,url2)
+    # print(json.dumps(countries, indent=2)) 
+    if not countries:
+        raise ValueError("No country data returned from API. Cannot proceed.")
+
+    # connect to the postgresdb
+    conn = connect_db()
+    if not conn:
+        raise ConnectionError("Failed to connect to PostgreSQL. Check your credentials or server status.")
+
+    # initialize cursor for sql instructions
+    cursor = conn.cursor()
+    # create table in the database if not exists
+    create_table(cursor)
+    # bulk insert values into the created table
+    insert_countries(cursor, countries)
+    # commit insertion
+    conn.commit()
+    cursor.close()
+    conn.close()
+    print("All done!")
 
 # Run the program only when executed on the cli
 if __name__ == "__main__":

@@ -1,1 +1,3 @@
 .venv
+my_creds.env
+__pycache__
