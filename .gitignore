@@ -1,3 +1,4 @@
 .venv
 my_creds.env
 __pycache__
+countries_raw.json
