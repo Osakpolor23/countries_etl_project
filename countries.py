@@ -47,10 +47,37 @@ def fetch_country_data(url1,url2):
     for country1, country2 in zip(response1, response2): 
     # Merge dictionaries for each country
         merged_country = {**country1, **country2} 
-        merged_data.append(merged_country) 
+        merged_data.append(merged_country)
+    
+    # Save to JSON file
+    with open('countries_raw.json', 'w', encoding='utf-8') as f:
+        json.dump(merged_data, f, ensure_ascii=False, indent=4)
+
+    print("Data saved to countries_raw.json")
 
     return merged_data
 
+def load_country_data_from_json(json_path='countries_raw.json'):
+    """Loads country metadata from a previously saved local JSON file.
+
+    Parameters
+    ---------------
+        json_path (str, optional): Path to the JSON file containing cached country data. 
+        Defaults to 'countries_raw.json' if no path is provided.
+
+    Returns
+    ---------------
+        list: A list of country records in dictionary format, representing the raw merged data
+        originally fetched from the REST Countries API.
+    
+    Notes
+    ---------------
+        This function is intended to provide a cached data source to avoid repeated API calls.
+        Useful for offline development and faster pipeline execution when the data is already available locally.
+    """
+    with open(json_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    return data
 
 # Transform one country record into tuple matching table schema
 def transform_country(country):
@@ -61,7 +88,7 @@ def transform_country(country):
     while also carrying out the necessary transformations like replacing missing values with defaults
     like `Unknown` and `0`.
 
-    parameter
+    parameters
     ---------------
         country (dict): A dictionary representing one country's metadata from the API.
         this dictionary may contain nested keys for name, currencies, capital cities,
@@ -144,7 +171,7 @@ def create_table(cursor, sql_file = './ddl_commands/create_countries.sql'):
     database if it does not already exist, or any other create table path provided by the user
     by executing an SQL statement stored in an external file.
 
-    parameter(s)
+    parameters
     ---------------
         cursor (psycopg2.extensions.cursor): A PostgreSQL database cursor used to execute SQL commands.
         This cursor must be associated with an active database connection.
@@ -177,7 +204,7 @@ def insert_countries(cursor, countries):
     it for insertion by converting to a list of tuples, and then run a bulk insert of the
     values into the created table in the datable.
 
-    Parameter
+    Parameters
     ---------------
         cursor (psycopg2.extensions.cursor): A PostgreSQL database cursor used to execute SQL insert statements.
         Must be connected to an active database session.
@@ -209,7 +236,9 @@ def main():
     global country data into a PostgreSQL database.
 
     Steps:
-        1. Extracts country metadata from the REST Countries API using fetch_country_data(url1,url2).
+        1. Extracts country metadata from the locally saved api data in json format
+        and if not avalaible, fetch the data from the REST Countries API
+        using load_country_data_from_json().
         2. Validates that data was successfully retrieved.
         3. Establishes a connection to a local PostgreSQL instance.
         4. Creates the target 'countries' table if it does not already exist.
@@ -223,9 +252,9 @@ def main():
         None
     """
 
-    # fecth the API data
-    countries = fetch_country_data(url1,url2)
-    # print(json.dumps(countries, indent=2)) 
+    # fetch API data by toggling between local or web source
+    USED_CACHED = True
+    countries = load_country_data_from_json() if USED_CACHED else fetch_country_data(url1,url2)
     if not countries:
         raise ValueError("No country data returned from API. Cannot proceed.")
 
