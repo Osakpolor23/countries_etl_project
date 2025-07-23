@@ -137,7 +137,6 @@ def connect_db():
         return None
 
 def create_table(cursor):
-
     """A function that executes the DDL command `create` on the database.
 
     It performs DDL commands like create statement on the database by parsing the argument
@@ -185,9 +184,7 @@ def create_table(cursor):
     """)
     print("Table 'countries' created in the postgresdb with uniqueness constraint.")
 
-
 def insert_countries(cursor, countries):
-
     """A function that executes bulk inserts into the created table in the database.
 
     It executes the DML command `insert` on the created table by parsing the arguments
