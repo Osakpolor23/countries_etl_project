@@ -166,7 +166,7 @@ def create_table(cursor, sql_file = './ddl_commands/create_countries.sql'):
     with open(sql_file, 'r') as f:
         sql = f.read()
     cursor.execute(sql)
-    print("Table 'countries' created in the postgresdb with uniqueness constraint.")
+    print(f"Executed SQL from {sql_file} and the table created with uniqueness constraint.")
 
 def insert_countries(cursor, countries):
     """A function that executes bulk inserts into the created table in the database.
