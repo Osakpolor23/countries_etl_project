@@ -253,8 +253,8 @@ def main():
     """
 
     # fetch API data by toggling between local or web source
-    USED_CACHED = True
-    countries = load_country_data_from_json() if USED_CACHED else fetch_country_data(url1,url2)
+    USE_CACHED = True
+    countries = load_country_data_from_json() if USE_CACHED else fetch_country_data(url1,url2)
     if not countries:
         raise ValueError("No country data returned from API. Cannot proceed.")
 
