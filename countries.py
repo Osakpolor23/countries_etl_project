@@ -142,7 +142,7 @@ def create_table(cursor, sql_file = './ddl_commands/create_countries.sql'):
     It performs DDL commands like create statement on the database by parsing the argument
     `cursor` through it. It's purpose is to create the default 'countries' table in the PostgreSQL 
     database if it does not already exist, or any other create table path provided by the user
-    by executing a SQL statement stored in an external file.
+    by executing an SQL statement stored in an external file.
 
     parameter(s)
     ---------------
