@@ -136,52 +136,36 @@ def connect_db():
         print("Database connection failed:", e) 
         return None
 
-def create_table(cursor):
+def create_table(cursor, sql_file = './ddl_commands/create_countries.sql'):
     """A function that executes the DDL command `create` on the database.
 
     It performs DDL commands like create statement on the database by parsing the argument
-    `cursor` through it. It's purpose is to create the 'countries' table in the PostgreSQL 
-    database if it does not already exist.
+    `cursor` through it. It's purpose is to create the default 'countries' table in the PostgreSQL 
+    database if it does not already exist, or any other create table path provided by the user
+    by executing a SQL statement stored in an external file.
 
     parameter(s)
     ---------------
         cursor (psycopg2.extensions.cursor): A PostgreSQL database cursor used to execute SQL commands.
         This cursor must be associated with an active database connection.
-    
+
+        sql_file (str, optional): Path to the SQL file containing the CREATE TABLE statement. 
+        Defaults to './ddl_commands/create_countries.sql' if no path is provided.
+
     Returns
     ---------------
         None
+
+    Notes
+    ---------------
+        This approach separates SQL logic from Python code, allowing easy reuse and scaling
+        for multiple table definitions.
+        Ensure the SQL file exists and contains a valid CREATE TABLE statement before execution.
     """
 
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS public.countries (
-        id SERIAL PRIMARY KEY,
-        country_name TEXT,
-        official_name TEXT,
-        native_names TEXT,
-        currency_codes TEXT,
-        currency_names TEXT,
-        currency_symbols TEXT,
-        idd_codes TEXT,
-        capitals TEXT,
-        region TEXT,
-        subregion TEXT,
-        languages TEXT,
-        area REAL,
-        population BIGINT,
-        continents TEXT,
-        independent BOOLEAN,
-        un_member BOOLEAN,
-        start_of_week TEXT,
-        CONSTRAINT unique_country_profile UNIQUE (
-        country_name,
-        official_name,
-        region,
-        area,
-        continents
-            )
-    )
-    """)
+    with open(sql_file, 'r') as f:
+        sql = f.read()
+    cursor.execute(sql)
     print("Table 'countries' created in the postgresdb with uniqueness constraint.")
 
 def insert_countries(cursor, countries):
