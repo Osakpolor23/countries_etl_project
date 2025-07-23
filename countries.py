@@ -75,9 +75,17 @@ def load_country_data_from_json(json_path='countries_raw.json'):
         This function is intended to provide a cached data source to avoid repeated API calls.
         Useful for offline development and faster pipeline execution when the data is already available locally.
     """
-    with open(json_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-    return data
+    try:
+        if os.path.exists(json_path):
+            with open(json_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data
+        else:
+            print(f"JSON file {json_path} not found")
+    except Exception as e:
+        print(f"Failed to load JSON: {e}")
+
+    return None
 
 # Transform one country record into tuple matching table schema
 def transform_country(country):
@@ -254,7 +262,10 @@ def main():
 
     # fetch API data by toggling between local or web source
     USE_CACHED = True
-    countries = load_country_data_from_json() if USE_CACHED else fetch_country_data(url1,url2)
+    countries = load_country_data_from_json() if USE_CACHED else None
+    if countries is None:
+        print("Fetching fresh data from API...")
+        countries = fetch_country_data(url1,url2)
     if not countries:
         raise ValueError("No country data returned from API. Cannot proceed.")
 
