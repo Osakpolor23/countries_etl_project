@@ -213,7 +213,7 @@ def insert_countries(cursor, countries, sql_file='./dml_commands/insert_countrie
     `cursor` and `countries` through it. It uses the transform(param) function to transform
     each dictionary from the list of dictionaries returned from the api extraction to prepare
     it for insertion by converting to a list of tuples, and then run a bulk insert of the
-    values into the created table in the datable.
+    values into the created table in the database.
 
     Parameters
     ---------------
@@ -235,7 +235,7 @@ def insert_countries(cursor, countries, sql_file='./dml_commands/insert_countrie
     with open(sql_file, 'r') as f:
         sql = f.read()
     cursor.executemany(sql,records)
-    print(f"Inserted {len(records)} records")
+    print(f"Inserted {len(records)} records from {sql_file}")
 
 # Main execution
 def main():
