@@ -3,12 +3,11 @@ import requests
 import json
 import psycopg2
 import os
-from config import url1
-from config import url2
+from config import urls
 from dotenv import load_dotenv
 
 # Fetch and merge country data from REST Countries API
-def fetch_country_data(url1,url2):
+def fetch_country_data(urls):
     """Fetches and merges country metadata from two REST Countries API endpoints.
 
     It takes in two arguments which are the urls of the API whose data you want to fetch
@@ -38,8 +37,8 @@ def fetch_country_data(url1,url2):
     """
 
     try:
-        response1 = requests.get(url1).json()
-        response2 = requests.get(url2).json()
+        response1 = requests.get(urls['url1']).json()
+        response2 = requests.get(urls['url2']).json()
     except Exception as e:
         print("Failed to fetch data:", e)
     # Initialize an empty list to hold the merged data
@@ -264,7 +263,7 @@ def main():
     countries = load_country_data_from_json() if USE_CACHED else None
     if countries is None:
         print("Fetching fresh data from API...")
-        countries = fetch_country_data(url1,url2)
+        countries = fetch_country_data(urls)
     if not countries:
         raise ValueError("No country data returned from API. Cannot proceed.")
 

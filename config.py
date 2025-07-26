@@ -1,3 +1,2 @@
-url1 = "https://restcountries.com/v3.1/all?fields=name,independent,unMember,startOfWeek,currencies,idd,capital,region,subregion,languages"
-url2 = "https://restcountries.com/v3.1/all?fields=area,population,continents"
-
+urls = {'url1': "https://restcountries.com/v3.1/all?fields=name,independent,unMember,startOfWeek,currencies,idd,capital,region,subregion,languages",
+        'url2': "https://restcountries.com/v3.1/all?fields=area,population,continents"}
