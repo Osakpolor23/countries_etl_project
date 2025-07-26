@@ -10,14 +10,13 @@ from dotenv import load_dotenv
 def fetch_country_data(urls):
     """Fetches and merges country metadata from two REST Countries API endpoints.
 
-    It takes in two arguments which are the urls of the API whose data you want to fetch
+    It takes in an argument which is the dictionary holding the urls of the API whose data you want to fetch
     and returns the list of the fetched API data. It also persist the data from the API locally
     in a JSON file to avoid calling the API every single time.
 
     Parameters
     ---------------
-        url1 (str): The first API URL containing fields like name, currencies, languages, and geopolitics.
-        url2 (str): The second API URL containing fields such as area, population, and continents.
+        urls(dict): The dictionary holding the API URL containing the fields you want you want to fetch.
     
     Requirements
     ---------------
@@ -243,8 +242,8 @@ def main():
 
     Steps:
         1. Extracts country metadata from the locally saved api data in json format
-        and if not avalaible, fetch the data from the REST Countries API
-        using load_country_data_from_json().
+           using load_country_data_from_json() and if not avalaible,
+           fetch the data from the REST Countries API using fetch_country_data().
         2. Validates that data was successfully retrieved.
         3. Establishes a connection to a local PostgreSQL instance.
         4. Creates the target 'countries' table if it does not already exist.
